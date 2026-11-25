@@ -1,0 +1,46 @@
+#!/bin/bash 
+
+BAUD_RATE=9600
+SERIAL_PORT="/dev/ttyUSB0"
+
+while getopts "b:p:" opt; do
+    case "$opt" in
+        b)
+            BAUD_RATE="$OPTARG"
+            ;;
+        p)
+            SERIAL_PORT="$OPTARG"
+            ;;
+        *)
+            echo "Usage: $0 [-b baud_rate] [-p serial_port]"
+            exit 1
+            ;;
+    esac
+done
+
+
+picocom -b "$BAUD_RATE" "$SERIAL_PORT" | ts '[%Y-%m-%d %H:%M:%S]' | gawk -v MAX_LINES=50000 '
+{
+    FILE_NUMBER = int((NR - 1) / MAX_LINES) + 1
+    FILE_NAME = sprintf("serial_%03d.log", FILE_NUMBER)
+
+    if (FILE_NAME != CURRENT_FILE) {
+        if (CURRENT_FILE != "")
+            close(CURRENT_FILE)
+
+        CURRENT_FILE = FILE_NAME
+    }
+
+    LINE_NUMBER = (NR - 1) % MAX_LINES + 1
+
+    printf "%06d | %s\n", LINE_NUMBER, $0 > CURRENT_FILE
+
+    fflush(CURRENT_FILE)
+
+    print $0
+}
+
+END {
+    if (CURRENT_FILE != "")
+        close(CURRENT_FILE)
+}' 

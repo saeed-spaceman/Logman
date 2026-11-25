@@ -1,0 +1,11 @@
+Package: logman
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: all
+Depends: bash, picocom, moreutils, gawk
+Maintainer: Saeed Mohammadi <saeed.mohamadi9877@gmail.com>
+Description: Serial Port Log collecter
+ A command-line tool for logging serial port data
+ with timestamps and automatic log file rotation.
+
